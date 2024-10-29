@@ -1,12 +1,17 @@
-const User = require('../models/user');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
 
-exports.register = async (req, res) => {
+export const register = async (req, res) => {
     const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+        return res.status(400).json({ msg: 'Please provide username, email, and password' });
+    }
 
     try {
         let user = await User.findOne({ email });
+
         if (user) {
             return res.status(400).json({ msg: 'User already exists' });
         }
@@ -20,20 +25,24 @@ exports.register = async (req, res) => {
 
         const payload = { user: { id: user.id } };
 
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token }); // Return the token
     } catch (err) {
+        console.log('Error during registration:', err);
         res.status(500).send('Server error');
     }
 };
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ msg: 'Please provide email and password' });
+    }
 
     try {
         let user = await User.findOne({ email });
+
         if (!user) {
             return res.status(400).json({ msg: 'Invalid credentials' });
         }
@@ -44,13 +53,23 @@ exports.login = async (req, res) => {
         }
 
         const payload = { user: { id: user.id } };
-
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
-
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token }); // Return the token
     } catch (err) {
+        console.log('Error during login:', err);
         res.status(500).send('Server error');
+    }
+};
+
+export const verifyJWT = async (token) => {
+    try {
+        const userJWT = jwt.verify(token, process.env.JWT_SECRET);
+        if (userJWT) {
+            const user = await User.findById(userJWT.user.id); // Access user ID from the decoded token
+            return user ? user : false;
+        }
+    } catch (error) {
+        console.log('Invalid token:', error);
+        return false; // Return false if verification fails
     }
 };

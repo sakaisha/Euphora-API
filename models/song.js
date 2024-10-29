@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const SongSchema = new mongoose.Schema({
     title: { type: String, required: true },
@@ -7,4 +7,8 @@ const SongSchema = new mongoose.Schema({
     playlist: { type: mongoose.Schema.Types.ObjectId, ref: 'Playlist', required: false }, // Playlist association
 });
 
-module.exports = mongoose.model('Song', SongSchema);
+// Define the Song model
+const Song = mongoose.model('Song', SongSchema);
+
+// Export the model as default
+export default Song;

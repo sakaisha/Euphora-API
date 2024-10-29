@@ -1,8 +1,16 @@
-const Playlist = require('../models/playlist');
+import Playlist from "../models/playlist.js";
 
-exports.createPlaylist = async (req, res) => {
+// Create a new playlist
+export const createPlaylist = async (req, res) => {
     try {
+        console.log("Request user:", req.user);  // Log the user
+        console.log("Request body:", req.body);  // Log the request body
+        
         const { title, description } = req.body;
+        if (!title || !description) {
+            return res.status(400).json({ msg: 'Title and description are required' });
+        }
+
         const playlist = new Playlist({
             user: req.user.id,
             title,
@@ -11,22 +19,28 @@ exports.createPlaylist = async (req, res) => {
         await playlist.save();
         res.json(playlist);
     } catch (err) {
+        console.error("Error creating playlist:", err);  // Log the error
         res.status(500).send('Server error');
     }
 };
 
-exports.getAllPlaylists = async (req, res) => {
+// Get all playlists for the authenticated user
+export const getAllPlaylists = async (req, res) => {
     try {
+        console.log("Request user:", req.user);  // Log the user
+        
         const playlists = await Playlist.find({ user: req.user.id });
         res.json(playlists);
     } catch (err) {
+        console.error("Error getting playlists:", err);  // Log the error
         res.status(500).send('Server error');
     }
 };
 
-exports.getPlaylist = async (req, res) => {
+// Get a specific playlist by ID
+export const getPlaylist = async (req, res) => {
     try {
-        const playlist = await Playlist.findById(req.params.id);
+        const playlist = await Playlist.findById(req.params.playlistId);
         if (!playlist) {
             return res.status(404).json({ msg: 'Playlist not found' });
         }
@@ -36,10 +50,11 @@ exports.getPlaylist = async (req, res) => {
     }
 };
 
-exports.updatePlaylist = async (req, res) => {
+// Update a specific playlist by ID
+export const updatePlaylist = async (req, res) => {
     try {
         const { title, description } = req.body;
-        let playlist = await Playlist.findById(req.params.id);
+        let playlist = await Playlist.findById(req.params.playlistId);
         if (!playlist) {
             return res.status(404).json({ msg: 'Playlist not found' });
         }
@@ -52,9 +67,10 @@ exports.updatePlaylist = async (req, res) => {
     }
 };
 
-exports.deletePlaylist = async (req, res) => {
+// Delete a specific playlist by ID
+export const deletePlaylist = async (req, res) => {
     try {
-        let playlist = await Playlist.findById(req.params.id);
+        let playlist = await Playlist.findById(req.params.playlistId);
         if (!playlist) {
             return res.status(404).json({ msg: 'Playlist not found' });
         }
@@ -65,13 +81,13 @@ exports.deletePlaylist = async (req, res) => {
     }
 };
 
-exports.deleteAllPlaylists = async (req, res) => {
+// Delete all playlists for the authenticated user
+export const deleteAllPlaylists = async (req, res) => {
     try {
         const userPlaylists = await Playlist.deleteMany({ user: req.user.id });
-        if (!userPlaylists) {
+        if (!userPlaylists.deletedCount) {
             return res.status(404).json({ msg: 'No playlists found for this user' });
         }
-
         res.json({ msg: 'All playlists deleted successfully' });
     } catch (err) {
         res.status(500).send('Server error');

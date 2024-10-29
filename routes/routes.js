@@ -1,28 +1,28 @@
-const express = require('express');
-const AuthController = require('../controllers/AuthController');
-const PlaylistController = require('../controllers/PlaylistController');
-const SongController = require('../controllers/SongController');
-const authMiddleware = require('../middlewares/authMiddleware');
+import { Router } from "express"; 
+import { register, login } from "../controllers/AuthController.js";
+import { createPlaylist, getAllPlaylists, getPlaylist, updatePlaylist, deletePlaylist, deleteAllPlaylists } from "../controllers/PlaylistController.js";
+import { addSong, getAllSongs, updateSong, deleteSong, deleteAllSongs } from "../controllers/SongController.js";
+import AuthMiddleware from "../middlewares/authMiddleware.js";  // Import the auth middleware
 
-const router = express.Router();
+const router = Router();
 
-// Authentication
-router.post('/auth/register', AuthController.register);
-router.post('/auth/login', AuthController.login);
+// Auth Endpoints
+router.post('/auth/register', register);  // Register a new user
+router.post('/auth/login', login);        // Log in an existing user
 
-// Playlists
-router.post('/playlists', authMiddleware, PlaylistController.createPlaylist);
-router.get('/playlists', authMiddleware, PlaylistController.getAllPlaylists);
-router.get('/playlists/:id', authMiddleware, PlaylistController.getPlaylist);
-router.put('/playlists/:id', authMiddleware, PlaylistController.updatePlaylist);
-router.delete('/playlists/:id', authMiddleware, PlaylistController.deletePlaylist);
-router.delete('/playlists', authMiddleware, PlaylistController.deleteAllPlaylists);
+// Playlist Endpoints (Protected by authentication middleware)
+router.post('/playlists', AuthMiddleware.isAuthorized, createPlaylist);  // Create a new playlist
+router.get('/playlists', AuthMiddleware.isAuthorized, getAllPlaylists);  // Get all playlists
+router.get('/playlists/:playlistId', AuthMiddleware.isAuthorized, getPlaylist);  // Get a specific playlist by ID
+router.put('/playlists/:playlistId', AuthMiddleware.isAuthorized, updatePlaylist);  // Update a specific playlist by ID
+router.delete('/playlists/:playlistId', AuthMiddleware.isAuthorized, deletePlaylist);  // Delete a specific playlist by ID
+router.delete('/playlists', AuthMiddleware.isAuthorized, deleteAllPlaylists);  // Delete all playlists for the authenticated user
 
-// Songs
-router.post('/playlists/:playlistId/songs', authMiddleware, SongController.addSong);
-router.get('/playlists/:playlistId/songs', authMiddleware, SongController.getAllSongs);
-router.put('/playlists/:playlistId/songs/:songId', authMiddleware, SongController.updateSong);
-router.delete('/playlists/:playlistId/songs/:songId', authMiddleware, SongController.deleteSong);
-router.delete('/playlists/:playlistId/songs', authMiddleware, SongController.deleteAllSongs);
+// Song Endpoints (Protected by authentication middleware)
+router.post('/playlists/:playlistId/songs', AuthMiddleware.isAuthorized, addSong);  // Add a new song to a playlist
+router.get('/playlists/:playlistId/songs', AuthMiddleware.isAuthorized, getAllSongs);  // Get all songs from a playlist
+router.put('/playlists/:playlistId/songs/:songId', AuthMiddleware.isAuthorized, updateSong);  // Update a specific song in a playlist
+router.delete('/playlists/:playlistId/songs/:songId', AuthMiddleware.isAuthorized, deleteSong);  // Delete a specific song from a playlist
+router.delete('/playlists/:playlistId/songs', AuthMiddleware.isAuthorized, deleteAllSongs);  // Delete all songs from a playlist
 
-module.exports = router;
+export default router;

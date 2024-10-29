@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const PlaylistSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -7,4 +7,8 @@ const PlaylistSchema = new mongoose.Schema({
     songs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
 });
 
-module.exports = mongoose.model('Playlist', PlaylistSchema);
+// Define the Playlist model
+const Playlist = mongoose.model('Playlist', PlaylistSchema);
+
+// Export the model as default
+export default Playlist;
