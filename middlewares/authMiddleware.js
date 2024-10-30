@@ -1,4 +1,14 @@
-import { verifyJWT } from "../controllers/AuthController.js"; // Ensure correct named import
+import { verifyJWT } from "../controllers/AuthController.js";
+
+// Add error handler function inside authMiddleware.js
+function serverErrorsHandler(response, error) {
+    console.error('Server Error:', error);
+    return response.status(500).json({
+        status: "error",
+        message: "An internal server error occurred.",
+        error: error.message
+    });
+}
 
 export default class AuthMiddleware {
     static async isAuthorized(req, res, next) {
@@ -28,14 +38,14 @@ export default class AuthMiddleware {
             });
         }
 
-        console.log("Token received for verification:", token); // Log the token for debugging
+        console.log("Token received for verification:", token);
 
         try {
             const user = await verifyJWT(token);
 
             if (user) {
-                req.user = user;  // Ensure this user object is valid
-                console.log("Decoded user:", req.user); // Log for debugging
+                req.user = user;  
+                console.log("Decoded user:", req.user); 
                 next();
             } else {
                 return res.status(400).json({
@@ -48,15 +58,7 @@ export default class AuthMiddleware {
                 });
             }
         } catch (error) {
-            console.error('Error verifying token:', error); // Log the error
-            return res.status(500).json({
-                status: "error",
-                message: "Server error",
-                error: {
-                    code: 500,
-                    details: error.message,
-                },
-            });
+            return serverErrorsHandler(res, error); // Use error handler function
         }
     }
 }
