@@ -7,7 +7,7 @@ export const addSong = async (req, res) => {
         const { title, artist, album } = req.body;
 
         if (!title || !artist) {
-            return res.status(400).json({ msg: 'Title and artist are required' });
+            return res.status(400).json({ msg: 'Title, artist and album are required' });
         }
 
         const song = new Song({ title, artist, album });
@@ -91,7 +91,7 @@ export const deleteSong = async (req, res) => {
 
         await Song.findByIdAndDelete(req.params.songId); // Delete the song from the database
 
-        res.json({ msg: 'Song removed from playlist and deleted' });
+        res.json({ msg: 'Song removed from playlist.' });
     } catch (err) {
         console.error("Error deleting song:", err); // Improved error logging
         res.status(500).send('Server error');

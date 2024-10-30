@@ -1,4 +1,5 @@
 import Playlist from "../models/playlist.js";
+import Song from "../models/song.js";
 
 // Create a new playlist
 export const createPlaylist = async (req, res) => {
@@ -70,13 +71,21 @@ export const updatePlaylist = async (req, res) => {
 // Delete a specific playlist by ID
 export const deletePlaylist = async (req, res) => {
     try {
+        // Find the playlist by ID
         let playlist = await Playlist.findById(req.params.playlistId);
         if (!playlist) {
             return res.status(404).json({ msg: 'Playlist not found' });
         }
-        await playlist.remove();
-        res.json({ msg: 'Playlist removed' });
+
+        // Remove associated songs first (if necessary)
+        await Song.deleteMany({ _id: { $in: playlist.song } });
+
+        // Then remove the playlist itself
+        await Playlist.findByIdAndDelete(req.params.playlistId);
+
+        res.json({ msg: 'Playlist and associated songs removed' });
     } catch (err) {
+        console.error(err.message);
         res.status(500).send('Server error');
     }
 };
